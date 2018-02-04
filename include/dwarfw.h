@@ -16,9 +16,12 @@ struct dwarfw_cie {
 		uint8_t pointer_encoding; // only if augmentation contains "R"
 		// TODO: other augmentation data formats
 	} augmentation_data;
+
+	size_t instructions_length;
+	char *instructions;
 };
 
-int dwarfw_cie_write(struct dwarfw_cie *cie, FILE* f);
+size_t dwarfw_cie_write(struct dwarfw_cie *cie, size_t address_size, FILE* f);
 
 size_t dwarfw_cfa_write_advance_loc(uint32_t delta, FILE* f);
 size_t dwarfw_cfa_write_offset(uint64_t reg, uint64_t offset, FILE* f);

@@ -1,39 +1,55 @@
+#define _POSIX_C_SOURCE 200809L
 #include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include <leb128.h>
 #include <dwarfw.h>
 
-static int dwarfw_cfi_header_write(size_t length, uint32_t cie, FILE *f) {
-	// TODO: extended length
-	uint32_t length_u32 = length;
-	if (!fwrite(&length_u32, sizeof(length_u32), 1, f)) {
-		return 1;
-	}
-	if (!fwrite(&cie, sizeof(cie), 1, f)) {
-		return 1;
-	}
-	return 0;
+static size_t dwarfw_cfi_section_length(size_t body_length, size_t address_size,
+		size_t *padding_length) {
+	// The length field is not included in the total length
+	size_t header_length = sizeof(uint32_t); // CIE pointer
+
+	size_t length = header_length + body_length;
+	*padding_length = address_size - (length % address_size);
+
+	return length + *padding_length;
 }
 
-int dwarfw_cie_write(struct dwarfw_cie *cie, FILE *f) {
-	// TODO: precompute length
-	// CIE pointer is always zero for CIEs
-	if (dwarfw_cfi_header_write(0x14, 0, f)) {
-		return 1;
+static size_t dwarfw_cfi_header_write(size_t length, uint32_t cie, FILE *f) {
+	size_t n = 0;
+
+	// TODO: extended length
+	uint32_t length_u32 = length;
+	if (!(n += fwrite(&length_u32, sizeof(length_u32), 1, f))) {
+		return 0;
 	}
-	if (!fwrite(&cie->version, sizeof(cie->version), 1, f)) {
-		return 1;
+
+	if (!(n += fwrite(&cie, sizeof(cie), 1, f))) {
+		return 0;
 	}
-	if (!fwrite(cie->augmentation, strlen(cie->augmentation) + 1, 1, f)) {
-		return 1;
+
+	return n;
+}
+
+
+static size_t dwarfw_cie_header_write(struct dwarfw_cie *cie, FILE *f) {
+	size_t n = 0;
+
+	if (!(n += fwrite(&cie->version, sizeof(cie->version), 1, f))) {
+		return 0;
 	}
-	if (!leb128_write_u64(cie->code_alignment, f, 0)) {
-		return 1;
+	if (!(n += fwrite(cie->augmentation, strlen(cie->augmentation) + 1, 1, f))) {
+		return 0;
 	}
-	if (!leb128_write_s64(cie->data_alignment, f, 0)) {
-		return 1;
+	if (!(n += leb128_write_u64(cie->code_alignment, f, 0))) {
+		return 0;
 	}
-	if (!leb128_write_u64(cie->return_address_register, f, 0)) {
-		return 1;
+	if (!(n += leb128_write_s64(cie->data_alignment, f, 0))) {
+		return 0;
+	}
+	if (!(n += leb128_write_u64(cie->return_address_register, f, 0))) {
+		return 0;
 	}
 
 	if (cie->augmentation[0] == 'z') {
@@ -45,13 +61,54 @@ int dwarfw_cie_write(struct dwarfw_cie *cie, FILE *f) {
 			++len;
 		}
 
-		if (!leb128_write_u64(len, f, 0)) {
-			return 1;
+		if (!(n += leb128_write_u64(len, f, 0))) {
+			return 0;
 		}
-		if (!fwrite(augmentation_data, len, 1, f)) {
-			return 1;
+		if (!(n += fwrite(augmentation_data, len, 1, f))) {
+			return 0;
 		}
 	}
 
-	return 0;
+	return n;
+}
+
+size_t dwarfw_cie_write(struct dwarfw_cie *cie, size_t address_size, FILE *f) {
+	size_t n = 0;
+
+	// Encode header
+	size_t header_len;
+	char *header_buf;
+	FILE *header_f = open_memstream(&header_buf, &header_len);
+	if (header_f == NULL) {
+		return 0;
+	}
+	if (!dwarfw_cie_header_write(cie, header_f)) {
+		return 0;
+	}
+	fclose(header_f);
+
+	size_t padding_length;
+	size_t length = dwarfw_cfi_section_length(
+		header_len + cie->instructions_length, address_size,
+		&padding_length);
+
+	// CIE pointer is always zero for CIEs
+	if (!(n += dwarfw_cfi_header_write(length, 0, f))) {
+		return 0;
+	}
+
+	if (!(n += fwrite(header_buf, header_len, 1, f))) {
+		return 0;
+	}
+	free(header_buf);
+
+	if (!(n += fwrite(cie->instructions, cie->instructions_length, 1, f))) {
+		return 0;
+	}
+
+	if (!(n += dwarfw_cfa_pad(padding_length, f))) {
+		return 0;
+	}
+
+	return n;
 }
