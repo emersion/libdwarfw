@@ -4,8 +4,6 @@
 #include <stdint.h>
 #include <stdio.h>
 
-struct dwarfw_instruction; // TODO
-
 struct dwarfw_cie {
 	uint8_t version;
 	char *augmentation;
@@ -18,11 +16,17 @@ struct dwarfw_cie {
 		uint8_t pointer_encoding; // only if augmentation contains "R"
 		// TODO: other augmentation data formats
 	} augmentation_data;
-
-	size_t initial_instructions_length;
-	struct dwarfw_instruction *initial_instructions;
 };
 
 int dwarfw_cie_write(struct dwarfw_cie *cie, FILE* f);
+
+size_t dwarfw_cfa_write_advance_loc(uint32_t delta, FILE* f);
+size_t dwarfw_cfa_write_offset(uint64_t reg, uint64_t offset, FILE* f);
+size_t dwarfw_cfa_write_nop(FILE* f);
+size_t dwarfw_cfa_write_set_loc(size_t addr, FILE* f);
+size_t dwarfw_cfa_write_undefined(uint64_t reg, FILE* f);
+size_t dwarfw_cfa_write_def_cfa(uint64_t reg, uint64_t offset, FILE* f);
+
+size_t dwarfw_cfa_pad(size_t length, FILE *f);
 
 #endif

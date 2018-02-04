@@ -2,10 +2,10 @@
 #include <leb128.h>
 #include <dwarfw.h>
 
-static int dwarfw_cfi_header_write(size_t length, uint32_t cie, FILE* f) {
+static int dwarfw_cfi_header_write(size_t length, uint32_t cie, FILE *f) {
 	// TODO: extended length
-	uint32_t len = length;
-	if (!fwrite(&len, sizeof(len), 1, f)) {
+	uint32_t length_u32 = length;
+	if (!fwrite(&length_u32, sizeof(length_u32), 1, f)) {
 		return 1;
 	}
 	if (!fwrite(&cie, sizeof(cie), 1, f)) {
@@ -14,7 +14,7 @@ static int dwarfw_cfi_header_write(size_t length, uint32_t cie, FILE* f) {
 	return 0;
 }
 
-int dwarfw_cie_write(struct dwarfw_cie *cie, FILE* f) {
+int dwarfw_cie_write(struct dwarfw_cie *cie, FILE *f) {
 	// TODO: precompute length
 	// CIE pointer is always zero for CIEs
 	if (dwarfw_cfi_header_write(0x14, 0, f)) {

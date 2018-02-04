@@ -1,7 +1,10 @@
-#include <elf.h>
+#include <stdio.h>
+#include <dwarf.h>
 #include <dwarfw.h>
 
 int main(int argc, char **argv) {
+	FILE *f = stdout;
+
 	struct dwarfw_cie cie = {
 		.version = 1,
 		.augmentation = "zR",
@@ -11,5 +14,8 @@ int main(int argc, char **argv) {
 		.augmentation_data = { .pointer_encoding = 0x1B },
 	};
 
-	return dwarfw_cie_write(&cie, stdout);
+	dwarfw_cie_write(&cie, f);
+	dwarfw_cfa_write_def_cfa(7, 8, f);
+	dwarfw_cfa_write_offset(16, 1, f);
+	dwarfw_cfa_pad(2, f);
 }
