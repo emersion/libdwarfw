@@ -7,6 +7,8 @@ int main(int argc, char **argv) {
 		.augmentation = "zR",
 		.code_alignment = 1,
 		.data_alignment = -8,
+		.return_address_register = 16,
+		.augmentation_data = { .pointer_encoding = 0x1B },
 	};
 
 	return dwarfw_cie_write(&cie, stdout);
