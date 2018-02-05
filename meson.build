@@ -15,7 +15,7 @@ add_project_arguments('-Wno-unused-parameter', language: 'c')
 
 dwarfw_inc = include_directories('include')
 
-elf = dependency('libelf', required: false)
+elf = dependency('libelf')
 
 lib_dwarfw = library(
 	meson.project_name(),
