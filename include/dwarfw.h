@@ -21,7 +21,7 @@ struct dwarfw_cie {
 	char *instructions;
 };
 
-size_t dwarfw_cie_write(struct dwarfw_cie *cie, size_t address_size, FILE *f);
+size_t dwarfw_cie_write(struct dwarfw_cie *cie, FILE *f);
 
 struct dwarfw_fde {
 	struct dwarfw_cie *cie;
@@ -34,7 +34,7 @@ struct dwarfw_fde {
 	char *instructions;
 };
 
-size_t dwarfw_fde_write(struct dwarfw_fde *fde, size_t address_size, FILE *f);
+size_t dwarfw_fde_write(struct dwarfw_fde *fde, FILE *f);
 
 size_t dwarfw_cfa_write_advance_loc(uint32_t delta, FILE *f);
 size_t dwarfw_cfa_write_offset(uint64_t reg, uint64_t offset, FILE *f);

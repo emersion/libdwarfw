@@ -4,8 +4,6 @@
 #include <dwarf.h>
 #include <dwarfw.h>
 
-#define ADDRESS_SIZE 4
-
 static char *encode_cie_instructions(size_t *len) {
 	char *buf;
 	FILE *f = open_memstream(&buf, len);
@@ -66,7 +64,7 @@ int main(int argc, char **argv) {
 		.instructions_length = instr_len,
 		.instructions = instr,
 	};
-	size_t cie_len = dwarfw_cie_write(&cie, ADDRESS_SIZE, f);
+	size_t cie_len = dwarfw_cie_write(&cie, f);
 	free(instr);
 
 	instr = encode_fde_instructions(&instr_len);
@@ -82,7 +80,7 @@ int main(int argc, char **argv) {
 		.instructions_length = instr_len,
 		.instructions = instr,
 	};
-	dwarfw_fde_write(&fde, ADDRESS_SIZE, f);
+	dwarfw_fde_write(&fde, f);
 	free(instr);
 
 	return 0;

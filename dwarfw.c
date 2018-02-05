@@ -5,18 +5,19 @@
 #include <leb128.h>
 #include <dwarfw.h>
 
+#define ADDRESS_SIZE sizeof(uint32_t)
+
 static size_t cfi_section_length_length(size_t body_length) {
 	// TODO: extended length
 	return sizeof(uint32_t);
 }
 
-static size_t cfi_section_length(size_t body_length, size_t address_size,
-		size_t *padding_length) {
+static size_t cfi_section_length(size_t body_length, size_t *padding_length) {
 	// The length field is not included in the total length
 	size_t header_length = sizeof(uint32_t); // CIE pointer
 
 	size_t length = header_length + body_length;
-	*padding_length = address_size - (length % address_size);
+	*padding_length = ADDRESS_SIZE - (length % ADDRESS_SIZE);
 
 	return length + *padding_length;
 }
@@ -88,7 +89,7 @@ static size_t cie_header_write(struct dwarfw_cie *cie, FILE *f) {
 	return written;
 }
 
-size_t dwarfw_cie_write(struct dwarfw_cie *cie, size_t address_size, FILE *f) {
+size_t dwarfw_cie_write(struct dwarfw_cie *cie, FILE *f) {
 	size_t written = 0;
 	size_t n;
 
@@ -106,7 +107,7 @@ size_t dwarfw_cie_write(struct dwarfw_cie *cie, size_t address_size, FILE *f) {
 
 	size_t padding_length;
 	size_t length = cfi_section_length(header_len + cie->instructions_length,
-		address_size, &padding_length);
+		&padding_length);
 
 	// CIE pointer is always zero for CIEs
 	if (!(n = cfi_header_write(length, 0, f))) {
@@ -157,7 +158,7 @@ static size_t fde_header_write(struct dwarfw_fde *fde, FILE* f) {
 	return written;
 }
 
-size_t dwarfw_fde_write(struct dwarfw_fde *fde, size_t address_size, FILE* f) {
+size_t dwarfw_fde_write(struct dwarfw_fde *fde, FILE* f) {
 	size_t written = 0;
 	size_t n;
 
@@ -175,7 +176,7 @@ size_t dwarfw_fde_write(struct dwarfw_fde *fde, size_t address_size, FILE* f) {
 
 	size_t padding_length;
 	size_t length = cfi_section_length(header_len + fde->instructions_length,
-		address_size, &padding_length);
+		&padding_length);
 
 	// The pointer is a relative position from the start of the section
 	// It needs to be encoded relative to the place it's written
