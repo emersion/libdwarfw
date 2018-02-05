@@ -47,6 +47,7 @@ static char *encode_fde_instructions(size_t *len) {
 
 int main(int argc, char **argv) {
 	FILE *f = stdout;
+	size_t n, written = 0;
 
 	size_t instr_len;
 	char *instr = encode_cie_instructions(&instr_len);
@@ -64,7 +65,10 @@ int main(int argc, char **argv) {
 		.instructions_length = instr_len,
 		.instructions = instr,
 	};
-	size_t cie_len = dwarfw_cie_write(&cie, f);
+	if (!(n = dwarfw_cie_write(&cie, f))) {
+		return 1;
+	}
+	written += n;
 	free(instr);
 
 	instr = encode_fde_instructions(&instr_len);
@@ -74,13 +78,16 @@ int main(int argc, char **argv) {
 
 	struct dwarfw_fde fde = {
 		.cie = &cie,
-		.cie_pointer = cie_len,
+		.cie_pointer = written,
 		.initial_location = 0,
 		.address_range = 0x132,
 		.instructions_length = instr_len,
 		.instructions = instr,
 	};
-	dwarfw_fde_write(&fde, f);
+	if (!(n = dwarfw_fde_write(&fde, f))) {
+		return 1;
+	}
+	written += n;
 	free(instr);
 
 	return 0;

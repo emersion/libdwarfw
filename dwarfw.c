@@ -9,8 +9,11 @@
 #define ADDRESS_SIZE sizeof(uint32_t)
 
 static size_t cfi_section_length_length(size_t body_length) {
-	// TODO: extended length
-	return sizeof(uint32_t);
+	size_t length = sizeof(uint32_t);
+	if (body_length >= 0xFFFFFFFF) {
+		length += sizeof(uint64_t);
+	}
+	return length;
 }
 
 static size_t cfi_section_length(size_t body_length, size_t *padding_length) {
@@ -27,12 +30,26 @@ static size_t cfi_header_write(size_t length, uint32_t cie_pointer, FILE *f) {
 	size_t written = 0;
 	size_t n;
 
-	// TODO: extended length
-	uint32_t length_u32 = length;
-	if (!(n = fwrite(&length_u32, 1, sizeof(length_u32), f))) {
-		return 0;
+	if (length < 0xFFFFFFFF) {
+		uint32_t length_u32 = length;
+		if (!(n = fwrite(&length_u32, 1, sizeof(length_u32), f))) {
+			return 0;
+		}
+		written += n;
+	} else {
+		// Extended length
+		uint32_t length_u32 = 0xFFFFFFFF;
+		if (!(n = fwrite(&length_u32, 1, sizeof(length_u32), f))) {
+			return 0;
+		}
+		written += n;
+
+		uint32_t length_u64 = length;
+		if (!(n = fwrite(&length_u64, 1, sizeof(length_u64), f))) {
+			return 0;
+		}
+		written += n;
 	}
-	written += n;
 
 	if (!(n = fwrite(&cie_pointer, 1, sizeof(cie_pointer), f))) {
 		return 0;
