@@ -6,7 +6,7 @@
 
 #define ADDRESS_SIZE 4
 
-char *encode_instructions(size_t *len) {
+static char *encode_cie_instructions(size_t *len) {
 	char *buf;
 	FILE *f = open_memstream(&buf, len);
 	if (f == NULL) {
@@ -21,11 +21,37 @@ char *encode_instructions(size_t *len) {
 	return buf;
 }
 
+static char *encode_fde_instructions(size_t *len) {
+	char *buf;
+	FILE *f = open_memstream(&buf, len);
+	if (f == NULL) {
+		return NULL;
+	}
+
+	dwarfw_cfa_write_advance_loc(1, f);
+	dwarfw_cfa_write_def_cfa_offset(16, f);
+	dwarfw_cfa_write_offset(6, 2, f);
+	dwarfw_cfa_write_advance_loc(3, f);
+	dwarfw_cfa_write_def_cfa_register(6, f);
+	dwarfw_cfa_write_advance_loc(13, f);
+	dwarfw_cfa_write_offset(15, 3, f);
+	dwarfw_cfa_write_offset(14, 4, f);
+	dwarfw_cfa_write_offset(13, 5, f);
+	dwarfw_cfa_write_offset(12, 6, f);
+	dwarfw_cfa_write_offset(3, 7, f);
+	dwarfw_cfa_write_advance_loc(288, f);
+	dwarfw_cfa_write_def_cfa(7, 8, f);
+
+	fclose(f);
+
+	return buf;
+}
+
 int main(int argc, char **argv) {
 	FILE *f = stdout;
 
 	size_t instr_len;
-	char *instr = encode_instructions(&instr_len);
+	char *instr = encode_cie_instructions(&instr_len);
 	if (instr == NULL) {
 		return 1;
 	}
@@ -40,9 +66,23 @@ int main(int argc, char **argv) {
 		.instructions_length = instr_len,
 		.instructions = instr,
 	};
+	size_t cie_len = dwarfw_cie_write(&cie, ADDRESS_SIZE, f);
+	free(instr);
 
-	dwarfw_cie_write(&cie, ADDRESS_SIZE, f);
+	instr = encode_fde_instructions(&instr_len);
+	if (instr == NULL) {
+		return 1;
+	}
 
+	struct dwarfw_fde fde = {
+		.cie = &cie,
+		.cie_pointer = cie_len + 4,
+		.initial_location = 0,
+		.address_range = 0x132,
+		.instructions_length = instr_len,
+		.instructions = instr,
+	};
+	dwarfw_fde_write(&fde, ADDRESS_SIZE, f);
 	free(instr);
 
 	return 0;

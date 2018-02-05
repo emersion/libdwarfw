@@ -21,14 +21,29 @@ struct dwarfw_cie {
 	char *instructions;
 };
 
-size_t dwarfw_cie_write(struct dwarfw_cie *cie, size_t address_size, FILE* f);
+size_t dwarfw_cie_write(struct dwarfw_cie *cie, size_t address_size, FILE *f);
 
-size_t dwarfw_cfa_write_advance_loc(uint32_t delta, FILE* f);
-size_t dwarfw_cfa_write_offset(uint64_t reg, uint64_t offset, FILE* f);
-size_t dwarfw_cfa_write_nop(FILE* f);
-size_t dwarfw_cfa_write_set_loc(size_t addr, FILE* f);
-size_t dwarfw_cfa_write_undefined(uint64_t reg, FILE* f);
-size_t dwarfw_cfa_write_def_cfa(uint64_t reg, uint64_t offset, FILE* f);
+struct dwarfw_fde {
+	struct dwarfw_cie *cie;
+
+	uint32_t cie_pointer;
+	uint32_t initial_location, address_range;
+	// TODO: augmentation data
+
+	size_t instructions_length;
+	char *instructions;
+};
+
+size_t dwarfw_fde_write(struct dwarfw_fde *fde, size_t address_size, FILE *f);
+
+size_t dwarfw_cfa_write_advance_loc(uint32_t delta, FILE *f);
+size_t dwarfw_cfa_write_offset(uint64_t reg, uint64_t offset, FILE *f);
+size_t dwarfw_cfa_write_nop(FILE *f);
+size_t dwarfw_cfa_write_set_loc(uint32_t addr, FILE *f);
+size_t dwarfw_cfa_write_undefined(uint64_t reg, FILE *f);
+size_t dwarfw_cfa_write_def_cfa(uint64_t reg, uint64_t offset, FILE *f);
+size_t dwarfw_cfa_write_def_cfa_register(uint64_t reg, FILE *f);
+size_t dwarfw_cfa_write_def_cfa_offset(uint64_t offset, FILE *f);
 
 size_t dwarfw_cfa_pad(size_t length, FILE *f);
 
