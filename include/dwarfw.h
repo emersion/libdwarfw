@@ -26,7 +26,7 @@ size_t dwarfw_cie_write(struct dwarfw_cie *cie, size_t address_size, FILE *f);
 struct dwarfw_fde {
 	struct dwarfw_cie *cie;
 
-	uint32_t cie_pointer;
+	uint32_t cie_pointer; // relative to the start of the FDE section
 	uint32_t initial_location, address_range;
 	// TODO: augmentation data
 

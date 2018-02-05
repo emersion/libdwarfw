@@ -76,7 +76,7 @@ int main(int argc, char **argv) {
 
 	struct dwarfw_fde fde = {
 		.cie = &cie,
-		.cie_pointer = cie_len + 4,
+		.cie_pointer = cie_len,
 		.initial_location = 0,
 		.address_range = 0x132,
 		.instructions_length = instr_len,
