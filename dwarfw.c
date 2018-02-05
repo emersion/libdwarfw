@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 #include <leb128.h>
 #include <dwarfw.h>
 
@@ -161,6 +162,9 @@ static size_t fde_header_write(struct dwarfw_fde *fde, FILE* f) {
 size_t dwarfw_fde_write(struct dwarfw_fde *fde, FILE* f) {
 	size_t written = 0;
 	size_t n;
+
+	assert(fde->cie != NULL);
+	assert(fde->cie_pointer != 0);
 
 	// Encode header
 	size_t header_len;
