@@ -54,7 +54,7 @@ static char *encode_fde_instructions(size_t *len) {
 	return buf;
 }
 
-static size_t write_eh_frame(FILE *f) {
+static size_t write_eh_frame(long unsigned int text_offset, FILE *f) {
 	size_t n, written = 0;
 
 	size_t instr_len;
@@ -87,7 +87,7 @@ static size_t write_eh_frame(FILE *f) {
 	struct dwarfw_fde fde = {
 		.cie = &cie,
 		.cie_pointer = written,
-		.initial_location = 0,
+		.initial_location = text_offset - written,
 		.address_range = 0x132,
 		.instructions_length = instr_len,
 		.instructions = instr,
@@ -173,6 +173,12 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
+	GElf_Shdr text_shdr;
+	if (!gelf_getshdr(text, &text_shdr)) {
+		fprintf(stderr, "gelf_getshdr(text) failed\n");
+		return 1;
+	}
+
 	char *name = ".eh_frame";
 
 	// Write the .eh_frame section body in a buffer
@@ -182,7 +188,7 @@ int main(int argc, char **argv) {
 	if (f == NULL) {
 		return 1;
 	}
-	if (!write_eh_frame(f)) {
+	if (!write_eh_frame(text_shdr.sh_offset, f)) {
 		return 1;
 	}
 	fclose(f);

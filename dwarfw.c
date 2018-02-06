@@ -157,7 +157,12 @@ static size_t fde_header_write(struct dwarfw_fde *fde, FILE* f) {
 	size_t written = 0;
 	size_t n;
 
-	if (!(n = fwrite(&fde->initial_location, 1, sizeof(fde->initial_location), f))) {
+	// TODO: this assumes extended length is not used
+	size_t offset = sizeof(uint32_t) + // length
+		sizeof(uint32_t); // CIE pointer
+
+	uint32_t initial_location = fde->initial_location - offset;
+	if (!(n = fwrite(&initial_location, 1, sizeof(initial_location), f))) {
 		return 0;
 	}
 	written += n;
