@@ -153,13 +153,9 @@ size_t dwarfw_cie_write(struct dwarfw_cie *cie, FILE *f) {
 }
 
 
-static size_t fde_header_write(struct dwarfw_fde *fde, FILE* f) {
+static size_t fde_header_write(struct dwarfw_fde *fde, size_t offset, FILE* f) {
 	size_t written = 0;
 	size_t n;
-
-	// TODO: this assumes extended length is not used
-	size_t offset = sizeof(uint32_t) + // length
-		sizeof(uint32_t); // CIE pointer
 
 	uint32_t initial_location = fde->initial_location - offset;
 	if (!(n = fwrite(&initial_location, 1, sizeof(initial_location), f))) {
@@ -188,17 +184,19 @@ size_t dwarfw_fde_write(struct dwarfw_fde *fde, FILE* f) {
 	assert(fde->cie != NULL);
 	assert(fde->cie_pointer != 0);
 
-	// Encode header
+	// We need to know the size of the header
+	// Encode header and discard it
 	size_t header_len;
 	char *header_buf;
 	FILE *header_f = open_memstream(&header_buf, &header_len);
 	if (header_f == NULL) {
 		return 0;
 	}
-	if (!fde_header_write(fde, header_f)) {
+	if (!fde_header_write(fde, 0, header_f)) {
 		return 0;
 	}
 	fclose(header_f);
+	free(header_buf);
 
 	size_t padding_length;
 	size_t length = cfi_section_length(header_len + fde->instructions_length,
@@ -212,10 +210,9 @@ size_t dwarfw_fde_write(struct dwarfw_fde *fde, FILE* f) {
 	}
 	written += n;
 
-	if (!(n = fwrite(header_buf, 1, header_len, f))) {
+	if (!(n = fde_header_write(fde, written, f))) {
 		return 0;
 	}
-	free(header_buf);
 	written += n;
 
 	if (!(n = fwrite(fde->instructions, 1, fde->instructions_length, f))) {
