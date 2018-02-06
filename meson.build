@@ -17,6 +17,8 @@ dwarfw_inc = include_directories('include')
 
 elf = dependency('libelf')
 
+install_headers('include/dwarfw.h')
+
 lib_dwarfw = library(
 	meson.project_name(),
 	files(
