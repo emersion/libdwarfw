@@ -1,7 +1,6 @@
 #define _POSIX_C_SOURCE 200809L
 #include <stdlib.h>
 #include <stdio.h>
-#include <dwarf.h>
 #include <dwarfw.h>
 
 static char *encode_cie_instructions(size_t *len) {
