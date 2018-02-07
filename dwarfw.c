@@ -140,10 +140,12 @@ size_t dwarfw_cie_write(struct dwarfw_cie *cie, FILE *f) {
 	free(header_buf);
 	written += n;
 
-	if (!(n = fwrite(cie->instructions, 1, cie->instructions_length, f))) {
-		return 0;
+	if (cie->instructions_length > 0) {
+		if (!(n = fwrite(cie->instructions, 1, cie->instructions_length, f))) {
+			return 0;
+		}
+		written += n;
 	}
-	written += n;
 
 	if (!(n = dwarfw_cfa_pad(padding_length, f))) {
 		return 0;
@@ -217,10 +219,12 @@ size_t dwarfw_fde_write(struct dwarfw_fde *fde, FILE* f) {
 	}
 	written += n;
 
-	if (!(n = fwrite(fde->instructions, 1, fde->instructions_length, f))) {
-		return 0;
+	if (fde->instructions_length > 0) {
+		if (!(n = fwrite(fde->instructions, 1, fde->instructions_length, f))) {
+			return 0;
+		}
+		written += n;
 	}
-	written += n;
 
 	if (!(n = dwarfw_cfa_pad(padding_length, f))) {
 		return 0;
