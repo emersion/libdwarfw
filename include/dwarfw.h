@@ -40,7 +40,8 @@ size_t dwarfw_fde_write(struct dwarfw_fde *fde, FILE *f);
 size_t dwarfw_cfa_write_advance_loc(uint32_t delta, FILE *f);
 size_t dwarfw_cfa_write_offset(uint64_t reg, uint64_t offset, FILE *f);
 size_t dwarfw_cfa_write_nop(FILE *f);
-size_t dwarfw_cfa_write_set_loc(uint32_t addr, FILE *f);
+size_t dwarfw_cfa_write_set_loc(long long int addr, uint8_t pointer_encoding,
+	size_t offset, FILE *f);
 size_t dwarfw_cfa_write_undefined(uint64_t reg, FILE *f);
 size_t dwarfw_cfa_write_def_cfa(uint64_t reg, uint64_t offset, FILE *f);
 size_t dwarfw_cfa_write_def_cfa_register(uint64_t reg, FILE *f);

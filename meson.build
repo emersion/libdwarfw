@@ -25,6 +25,7 @@ lib_dwarfw = library(
 		'dwarfw.c',
 		'instructions.c',
 		'leb128.c',
+		'pointer.c',
 	),
 	include_directories: dwarfw_inc,
 	dependencies: [elf],

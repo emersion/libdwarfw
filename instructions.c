@@ -1,6 +1,7 @@
 #include <dwarf.h>
-#include <leb128.h>
 #include <dwarfw.h>
+#include <leb128.h>
+#include <pointer.h>
 
 static size_t write_u8(uint8_t b, FILE *f) {
 	return fwrite(&b, 1, sizeof(b), f);
@@ -18,8 +19,7 @@ static size_t write_u32(uint32_t b, FILE *f) {
 #define OPCODE_LOW_MASK 0x3F
 
 size_t dwarfw_cfa_write_advance_loc(uint32_t offset, FILE *f) {
-	size_t written = 0;
-	size_t n;
+	size_t n, written = 0;
 
 	if (offset <= OPCODE_LOW_MASK) {
 		if (!(n = write_u8(DW_CFA_advance_loc | offset, f))) {
@@ -62,8 +62,7 @@ size_t dwarfw_cfa_write_advance_loc(uint32_t offset, FILE *f) {
 }
 
 size_t dwarfw_cfa_write_offset(uint64_t reg, uint64_t offset, FILE *f) {
-	size_t written = 0;
-	size_t n;
+	size_t n, written = 0;
 
 	if (reg <= OPCODE_LOW_MASK) {
 		if (!(n = write_u8(DW_CFA_offset | reg, f))) {
@@ -95,16 +94,16 @@ size_t dwarfw_cfa_write_nop(FILE *f) {
 	return write_u8(DW_CFA_nop, f);
 }
 
-size_t dwarfw_cfa_write_set_loc(uint32_t addr, FILE *f) {
-	size_t written = 0;
-	size_t n;
+size_t dwarfw_cfa_write_set_loc(long long int addr, uint8_t pointer_encoding,
+		size_t offset, FILE *f) {
+	size_t n, written = 0;
 
 	if (!(n = write_u8(DW_CFA_set_loc, f))) {
 		return 0;
 	}
 	written += n;
 
-	if (!(n = fwrite(&addr, 1, sizeof(addr), f))) {
+	if (!(n = pointer_write(addr, pointer_encoding, offset, f))) {
 		return 0;
 	}
 	written += n;
@@ -113,8 +112,7 @@ size_t dwarfw_cfa_write_set_loc(uint32_t addr, FILE *f) {
 }
 
 size_t dwarfw_cfa_write_undefined(uint64_t reg, FILE *f) {
-	size_t written = 0;
-	size_t n;
+	size_t n, written = 0;
 
 	if (!(n = write_u8(DW_CFA_undefined, f))) {
 		return 0;
@@ -130,8 +128,7 @@ size_t dwarfw_cfa_write_undefined(uint64_t reg, FILE *f) {
 }
 
 size_t dwarfw_cfa_write_def_cfa(uint64_t reg, uint64_t offset, FILE *f) {
-	size_t written = 0;
-	size_t n;
+	size_t n, written = 0;
 
 	if (!(n = write_u8(DW_CFA_def_cfa, f))) {
 		return 0;
@@ -152,8 +149,7 @@ size_t dwarfw_cfa_write_def_cfa(uint64_t reg, uint64_t offset, FILE *f) {
 }
 
 size_t dwarfw_cfa_write_def_cfa_register(uint64_t reg, FILE *f) {
-	size_t written = 0;
-	size_t n;
+	size_t n, written = 0;
 
 	if (!(n = write_u8(DW_CFA_def_cfa_register, f))) {
 		return 0;
@@ -169,8 +165,7 @@ size_t dwarfw_cfa_write_def_cfa_register(uint64_t reg, FILE *f) {
 }
 
 size_t dwarfw_cfa_write_def_cfa_offset(uint64_t offset, FILE *f) {
-	size_t written = 0;
-	size_t n;
+	size_t n, written = 0;
 
 	if (!(n = write_u8(DW_CFA_def_cfa_offset, f))) {
 		return 0;
