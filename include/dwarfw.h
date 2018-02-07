@@ -6,7 +6,7 @@
 
 struct dwarfw_cie {
 	uint8_t version;
-	char *augmentation;
+	const char *augmentation;
 	uint64_t code_alignment;
 	int64_t data_alignment;
 	uint64_t return_address_register;
@@ -18,7 +18,7 @@ struct dwarfw_cie {
 	} augmentation_data;
 
 	size_t instructions_length;
-	char *instructions;
+	const char *instructions;
 };
 
 size_t dwarfw_cie_write(struct dwarfw_cie *cie, FILE *f);
@@ -32,7 +32,7 @@ struct dwarfw_fde {
 	// TODO: augmentation data
 
 	size_t instructions_length;
-	char *instructions;
+	const char *instructions;
 };
 
 size_t dwarfw_fde_write(struct dwarfw_fde *fde, FILE *f);
