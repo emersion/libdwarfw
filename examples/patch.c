@@ -250,6 +250,11 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
+	if (!gelf_update_shdr(shstrtab, &shstrtab_shdr)) {
+		fprintf(stderr, "gelf_update_shdr(shstrtab) failed\n");
+		return 1;
+	}
+
 	// Write the modified ELF object
 	elf_flagelf(e, ELF_C_SET, ELF_F_DIRTY);
 	if (elf_update(e, ELF_C_WRITE) < 0) {
