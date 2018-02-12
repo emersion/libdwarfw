@@ -1,5 +1,5 @@
 #include <stdbool.h>
-#include <leb128.h>
+#include "leb128.h"
 
 size_t leb128_write_u64(uint64_t value, FILE *f, size_t pad_to) {
 	size_t count = 0;

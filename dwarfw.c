@@ -1,11 +1,11 @@
 #define _POSIX_C_SOURCE 200809L
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include <assert.h>
 #include <dwarfw.h>
-#include <leb128.h>
-#include <pointer.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "leb128.h"
+#include "pointer.h"
 
 #define ADDRESS_SIZE sizeof(uint32_t)
 

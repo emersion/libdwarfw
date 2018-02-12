@@ -1,7 +1,7 @@
 #include <dwarf.h>
 #include <dwarfw.h>
-#include <leb128.h>
-#include <pointer.h>
+#include "leb128.h"
+#include "pointer.h"
 
 static size_t write_u8(uint8_t b, FILE *f) {
 	return fwrite(&b, 1, sizeof(b), f);
