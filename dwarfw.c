@@ -164,13 +164,14 @@ static size_t fde_header_write(struct dwarfw_fde *fde, size_t offset,
 		}
 		written += n;
 	} else {
-		rela->r_offset = offset;
-		rela->r_addend = fde->initial_location;
-
 		if (!(n = pointer_write(0, ptr_enc, 0, f))) {
 			return 0;
 		}
 		written += n;
+
+		rela->r_offset = offset;
+		rela->r_info = GELF_R_INFO(0, pointer_rela_type(ptr_enc));
+		rela->r_addend = fde->initial_location;
 	}
 
 	// Address range seems to always be a uint32_t for .eh_frame

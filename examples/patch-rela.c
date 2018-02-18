@@ -361,7 +361,8 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 	// r_offset and r_addend have already been populated by dwarfw_fde_write
-	initial_position_rela.r_info = GELF_R_INFO(text_sym_idx, R_X86_64_PC32);
+	initial_position_rela.r_info =
+		GELF_R_INFO(text_sym_idx, ELF32_R_TYPE(initial_position_rela.r_info));
 	Elf_Scn *rela = create_rela_section(elf, ".rela.eh_frame", scn,
 		&initial_position_rela);
 	if (rela == NULL) {

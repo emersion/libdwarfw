@@ -1,3 +1,5 @@
+#include <stdbool.h>
+#include <elf.h>
 #include <dwarf.h>
 #include <leb128.h>
 #include <pointer.h>
@@ -48,5 +50,41 @@ size_t pointer_write(long long int pointer, uint8_t enc, size_t offset,
 		return fwrite(&pointer_s64, 1, sizeof(pointer_s64), f);
 	default:
 		return 0; // Unknown encoding
+	}
+}
+
+uint8_t pointer_rela_type(uint8_t enc) {
+	bool rel = false;
+	switch (enc & 0xF0) {
+	case 0:
+		break; // No encoding
+	case DW_EH_PE_pcrel:
+	case DW_EH_PE_textrel:
+	case DW_EH_PE_datarel:
+	case DW_EH_PE_funcrel:
+		rel = true;
+		break;
+	case DW_EH_PE_aligned:
+		return R_X86_64_NONE; // TODO
+	default:
+		return R_X86_64_NONE; // Unknown encoding
+	}
+
+	// TODO: support more of these
+	switch (enc & 0x0F) {
+	case DW_EH_PE_udata2:
+		return rel ? R_X86_64_NONE : R_X86_64_16;
+	case DW_EH_PE_udata4:
+		return rel ? R_X86_64_NONE : R_X86_64_32;
+	case DW_EH_PE_udata8:
+		return rel ? R_X86_64_NONE : R_X86_64_64;
+	case DW_EH_PE_sdata2:
+		return rel ? R_X86_64_PC16 : R_X86_64_NONE;
+	case DW_EH_PE_sdata4:
+		return rel ? R_X86_64_PC32 : R_X86_64_32S;
+	case DW_EH_PE_sdata8:
+		return rel ? R_X86_64_PC64 : R_X86_64_NONE;
+	default:
+		return R_X86_64_NONE; // Unsupported encoding
 	}
 }
