@@ -1,12 +1,13 @@
 #define _POSIX_C_SOURCE 200809L
-#include <stdlib.h>
-#include <stdio.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <string.h>
-#include <libelf.h>
-#include <gelf.h>
+#include <dwarf.h>
 #include <dwarfw.h>
+#include <fcntl.h>
+#include <gelf.h>
+#include <libelf.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
 // Fallback for systems without this "read and write, mmaping if possible" cmd.
 #ifndef ELF_C_RDWR_MMAP
@@ -69,7 +70,9 @@ static size_t write_eh_frame(long unsigned int text_offset, FILE *f) {
 		.code_alignment = 1,
 		.data_alignment = -8,
 		.return_address_register = 16,
-		.augmentation_data = { .pointer_encoding = 0x1B },
+		.augmentation_data = {
+			.pointer_encoding = DW_EH_PE_sdata4 | DW_EH_PE_pcrel,
+		},
 		.instructions_length = instr_len,
 		.instructions = instr,
 	};

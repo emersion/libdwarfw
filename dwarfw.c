@@ -28,8 +28,7 @@ static size_t cfi_section_length(size_t body_length, size_t *padding_length) {
 }
 
 static size_t cfi_header_write(size_t length, uint32_t cie_pointer, FILE *f) {
-	size_t written = 0;
-	size_t n;
+	size_t n, written = 0;
 
 	if (length < 0xFFFFFFFF) {
 		uint32_t length_u32 = length;
@@ -62,8 +61,7 @@ static size_t cfi_header_write(size_t length, uint32_t cie_pointer, FILE *f) {
 
 
 static size_t cie_header_write(struct dwarfw_cie *cie, FILE *f) {
-	size_t written = 0;
-	size_t n;
+	size_t n, written = 0;
 
 	if (!(n = fwrite(&cie->version, 1, sizeof(cie->version), f))) {
 		return 0;
@@ -109,8 +107,7 @@ static size_t cie_header_write(struct dwarfw_cie *cie, FILE *f) {
 }
 
 size_t dwarfw_cie_write(struct dwarfw_cie *cie, FILE *f) {
-	size_t written = 0;
-	size_t n;
+	size_t n, written = 0;
 
 	// Encode header
 	size_t header_len;
@@ -157,8 +154,7 @@ size_t dwarfw_cie_write(struct dwarfw_cie *cie, FILE *f) {
 
 
 static size_t fde_header_write(struct dwarfw_fde *fde, size_t offset, FILE* f) {
-	size_t written = 0;
-	size_t n;
+	size_t n, written = 0;
 
 	uint8_t ptr_enc = fde->cie->augmentation_data.pointer_encoding;
 	if (!(n = pointer_write(fde->initial_location, ptr_enc, offset, f))) {
@@ -182,8 +178,7 @@ static size_t fde_header_write(struct dwarfw_fde *fde, size_t offset, FILE* f) {
 }
 
 size_t dwarfw_fde_write(struct dwarfw_fde *fde, FILE* f) {
-	size_t written = 0;
-	size_t n;
+	size_t n, written = 0;
 
 	assert(fde->cie != NULL);
 	assert(fde->cie_pointer != 0);

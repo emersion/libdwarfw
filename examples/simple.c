@@ -1,7 +1,8 @@
 #define _POSIX_C_SOURCE 200809L
-#include <stdlib.h>
-#include <stdio.h>
+#include <dwarf.h>
 #include <dwarfw.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 static char *encode_cie_instructions(size_t *len) {
 	char *buf;
@@ -60,7 +61,9 @@ int main(int argc, char **argv) {
 		.code_alignment = 1,
 		.data_alignment = -8,
 		.return_address_register = 16,
-		.augmentation_data = { .pointer_encoding = 0x1B },
+		.augmentation_data = {
+			.pointer_encoding = DW_EH_PE_sdata4 | DW_EH_PE_pcrel,
+		},
 		.instructions_length = instr_len,
 		.instructions = instr,
 	};
