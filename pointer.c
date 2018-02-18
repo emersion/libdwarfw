@@ -1,8 +1,8 @@
-#include <stdbool.h>
-#include <elf.h>
 #include <dwarf.h>
-#include <leb128.h>
-#include <pointer.h>
+#include <elf.h>
+#include <stdbool.h>
+#include "leb128.h"
+#include "pointer.h"
 
 // See https://refspecs.linuxfoundation.org/LSB_5.0.0/LSB-Core-generic/LSB-Core-generic/dwarfext.html#DWARFEHENCODING
 size_t pointer_write(long long int pointer, uint8_t enc, size_t offset,
