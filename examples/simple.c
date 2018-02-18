@@ -86,7 +86,7 @@ int main(int argc, char **argv) {
 		.instructions_length = instr_len,
 		.instructions = instr,
 	};
-	if (!(n = dwarfw_fde_write(&fde, f))) {
+	if (!(n = dwarfw_fde_write(&fde, NULL, f))) {
 		return 1;
 	}
 	written += n;

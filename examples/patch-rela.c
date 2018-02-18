@@ -55,7 +55,7 @@ static char *encode_fde_instructions(size_t *len) {
 	return buf;
 }
 
-static size_t write_eh_frame(long unsigned int text_offset, FILE *f) {
+static size_t write_eh_frame(GElf_Rela *rela, FILE *f) {
 	size_t n, written = 0;
 
 	size_t instr_len;
@@ -90,14 +90,15 @@ static size_t write_eh_frame(long unsigned int text_offset, FILE *f) {
 	struct dwarfw_fde fde = {
 		.cie = &cie,
 		.cie_pointer = written,
-		.initial_location = text_offset - written,
+		.initial_location = 0,
 		.address_range = 0x132,
 		.instructions_length = instr_len,
 		.instructions = instr,
 	};
-	if (!(n = dwarfw_fde_write(&fde, f))) {
+	if (!(n = dwarfw_fde_write(&fde, rela, f))) {
 		return 0;
 	}
+	rela->r_offset += written;
 	written += n;
 	free(instr);
 
@@ -317,7 +318,8 @@ int main(int argc, char **argv) {
 	if (f == NULL) {
 		return 1;
 	}
-	if (!write_eh_frame(0x20, f)) { // text_shdr.sh_offset
+	GElf_Rela initial_position_rela;
+	if (!write_eh_frame(&initial_position_rela, f)) { // text_shdr.sh_offset
 		return 1;
 	}
 	fclose(f);
@@ -358,11 +360,8 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "can't find .text section in symbol table\n");
 		return 1;
 	}
-	GElf_Rela initial_position_rela = {
-		.r_offset = 0x20,
-		.r_info = GELF_R_INFO(text_sym_idx, R_X86_64_PC32),
-		.r_addend = 0,
-	};
+	// r_offset and r_addend have already been populated by dwarfw_fde_write
+	initial_position_rela.r_info = GELF_R_INFO(text_sym_idx, R_X86_64_PC32);
 	Elf_Scn *rela = create_rela_section(elf, ".rela.eh_frame", scn,
 		&initial_position_rela);
 	if (rela == NULL) {

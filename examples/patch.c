@@ -95,7 +95,7 @@ static size_t write_eh_frame(long unsigned int text_offset, FILE *f) {
 		.instructions_length = instr_len,
 		.instructions = instr,
 	};
-	if (!(n = dwarfw_fde_write(&fde, f))) {
+	if (!(n = dwarfw_fde_write(&fde, NULL, f))) {
 		return 0;
 	}
 	written += n;

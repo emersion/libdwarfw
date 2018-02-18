@@ -1,6 +1,7 @@
 #ifndef DWARFW_H
 #define DWARFW_H
 
+#include <gelf.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -35,7 +36,7 @@ struct dwarfw_fde {
 	const char *instructions;
 };
 
-size_t dwarfw_fde_write(struct dwarfw_fde *fde, FILE *f);
+size_t dwarfw_fde_write(struct dwarfw_fde *fde, GElf_Rela *rela, FILE* f);
 
 size_t dwarfw_cfa_write_advance_loc(uint32_t delta, FILE *f);
 size_t dwarfw_cfa_write_offset(uint64_t reg, uint64_t offset, FILE *f);

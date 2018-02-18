@@ -153,14 +153,26 @@ size_t dwarfw_cie_write(struct dwarfw_cie *cie, FILE *f) {
 }
 
 
-static size_t fde_header_write(struct dwarfw_fde *fde, size_t offset, FILE* f) {
+static size_t fde_header_write(struct dwarfw_fde *fde, size_t offset,
+		GElf_Rela *rela, FILE *f) {
 	size_t n, written = 0;
 
 	uint8_t ptr_enc = fde->cie->augmentation_data.pointer_encoding;
-	if (!(n = pointer_write(fde->initial_location, ptr_enc, offset, f))) {
-		return 0;
+	if (rela == NULL) {
+		if (!(n = pointer_write(fde->initial_location, ptr_enc, offset, f))) {
+			return 0;
+		}
+		written += n;
+	} else {
+		rela->r_offset = offset;
+		rela->r_addend = fde->initial_location;
+
+		if (!(n = pointer_write(0, ptr_enc, 0, f))) {
+			return 0;
+		}
+		written += n;
 	}
-	written += n;
+
 	// Address range seems to always be a uint32_t for .eh_frame
 	if (!(n = fwrite(&fde->address_range, 1, sizeof(fde->address_range), f))) {
 		return 0;
@@ -177,7 +189,7 @@ static size_t fde_header_write(struct dwarfw_fde *fde, size_t offset, FILE* f) {
 	return written;
 }
 
-size_t dwarfw_fde_write(struct dwarfw_fde *fde, FILE* f) {
+size_t dwarfw_fde_write(struct dwarfw_fde *fde, GElf_Rela *rela, FILE *f) {
 	size_t n, written = 0;
 
 	assert(fde->cie != NULL);
@@ -191,7 +203,7 @@ size_t dwarfw_fde_write(struct dwarfw_fde *fde, FILE* f) {
 	if (header_f == NULL) {
 		return 0;
 	}
-	if (!fde_header_write(fde, 0, header_f)) {
+	if (!fde_header_write(fde, 0, NULL, header_f)) {
 		return 0;
 	}
 	fclose(header_f);
@@ -209,7 +221,7 @@ size_t dwarfw_fde_write(struct dwarfw_fde *fde, FILE* f) {
 	}
 	written += n;
 
-	if (!(n = fde_header_write(fde, written, f))) {
+	if (!(n = fde_header_write(fde, written, rela, f))) {
 		return 0;
 	}
 	written += n;
