@@ -38,22 +38,32 @@ struct dwarfw_fde {
 
 size_t dwarfw_fde_write(struct dwarfw_fde *fde, GElf_Rela *rela, FILE* f);
 
-size_t dwarfw_cfa_write_advance_loc(uint32_t delta, FILE *f);
-size_t dwarfw_cfa_write_offset(uint64_t reg, uint64_t offset, FILE *f);
-size_t dwarfw_cfa_write_restore(uint64_t reg, FILE *f);
-size_t dwarfw_cfa_write_nop(FILE *f);
-size_t dwarfw_cfa_write_set_loc(long long int addr, uint8_t pointer_encoding,
+// Call Frame Instructions
+size_t dwarfw_cie_write_advance_loc(struct dwarfw_cie *cie, uint32_t delta,
+	FILE *f);
+size_t dwarfw_cie_write_offset(struct dwarfw_cie *cie, uint64_t reg,
+	long long int offset, FILE *f);
+size_t dwarfw_cie_write_restore(struct dwarfw_cie *cie, uint64_t reg, FILE *f);
+size_t dwarfw_cie_write_nop(struct dwarfw_cie *cie, FILE *f);
+size_t dwarfw_cie_write_set_loc(struct dwarfw_cie *cie, long long int addr,
 	size_t offset, FILE *f);
-size_t dwarfw_cfa_write_undefined(uint64_t reg, FILE *f);
-size_t dwarfw_cfa_write_same_value(uint64_t reg, FILE *f);
-size_t dwarfw_cfa_write_register(uint64_t reg, uint64_t offset, FILE *f);
-size_t dwarfw_cfa_write_remember_state(FILE *f);
-size_t dwarfw_cfa_write_restore_state(FILE *f);
-size_t dwarfw_cfa_write_def_cfa(uint64_t reg, uint64_t offset, FILE *f);
-size_t dwarfw_cfa_write_def_cfa_register(uint64_t reg, FILE *f);
-size_t dwarfw_cfa_write_def_cfa_offset(uint64_t offset, FILE *f);
-size_t dwarfw_cfa_write_val_offset(uint64_t reg, uint64_t offset, FILE *f);
+size_t dwarfw_cie_write_undefined(struct dwarfw_cie *cie, uint64_t reg,
+	FILE *f);
+size_t dwarfw_cie_write_same_value(struct dwarfw_cie *cie, uint64_t reg,
+	FILE *f);
+size_t dwarfw_cie_write_register(struct dwarfw_cie *cie, uint64_t reg,
+	uint64_t ref, FILE *f);
+size_t dwarfw_cie_write_remember_state(struct dwarfw_cie *cie, FILE *f);
+size_t dwarfw_cie_write_restore_state(struct dwarfw_cie *cie, FILE *f);
+size_t dwarfw_cie_write_def_cfa(struct dwarfw_cie *cie, uint64_t reg,
+	long long int offset, FILE *f);
+size_t dwarfw_cie_write_def_cfa_register(struct dwarfw_cie *cie, uint64_t reg,
+	FILE *f);
+size_t dwarfw_cie_write_def_cfa_offset(struct dwarfw_cie *cie,
+	long long int offset, FILE *f);
+size_t dwarfw_cie_write_val_offset(struct dwarfw_cie *cie, uint64_t reg,
+	long long int offset, FILE *f);
 
-size_t dwarfw_cfa_pad(size_t length, FILE *f);
+size_t dwarfw_cie_pad(struct dwarfw_cie *cie, size_t length, FILE *f);
 
 #endif

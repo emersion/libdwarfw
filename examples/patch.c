@@ -14,41 +14,41 @@
 #define ELF_C_RDWR_MMAP ELF_C_RDWR
 #endif
 
-static char *encode_cie_instructions(size_t *len) {
+static char *encode_cie_instructions(struct dwarfw_cie *cie, size_t *len) {
 	char *buf;
 	FILE *f = open_memstream(&buf, len);
 	if (f == NULL) {
 		return NULL;
 	}
 
-	dwarfw_cfa_write_def_cfa(7, 8, f);
-	dwarfw_cfa_write_offset(16, 1, f);
+	dwarfw_cie_write_def_cfa(cie, 7, 8, f);
+	dwarfw_cie_write_offset(cie, 16, 1, f);
 
 	fclose(f);
 
 	return buf;
 }
 
-static char *encode_fde_instructions(size_t *len) {
+static char *encode_fde_instructions(struct dwarfw_fde *fde, size_t *len) {
 	char *buf;
 	FILE *f = open_memstream(&buf, len);
 	if (f == NULL) {
 		return NULL;
 	}
 
-	dwarfw_cfa_write_advance_loc(1, f);
-	dwarfw_cfa_write_def_cfa_offset(16, f);
-	dwarfw_cfa_write_offset(6, 2, f);
-	dwarfw_cfa_write_advance_loc(3, f);
-	dwarfw_cfa_write_def_cfa_register(6, f);
-	dwarfw_cfa_write_advance_loc(13, f);
-	dwarfw_cfa_write_offset(15, 3, f);
-	dwarfw_cfa_write_offset(14, 4, f);
-	dwarfw_cfa_write_offset(13, 5, f);
-	dwarfw_cfa_write_offset(12, 6, f);
-	dwarfw_cfa_write_offset(3, 7, f);
-	dwarfw_cfa_write_advance_loc(288, f);
-	dwarfw_cfa_write_def_cfa(7, 8, f);
+	dwarfw_cie_write_advance_loc(fde->cie, 1, f);
+	dwarfw_cie_write_def_cfa_offset(fde->cie, 16, f);
+	dwarfw_cie_write_offset(fde->cie, 6, 2, f);
+	dwarfw_cie_write_advance_loc(fde->cie, 3, f);
+	dwarfw_cie_write_def_cfa_register(fde->cie, 6, f);
+	dwarfw_cie_write_advance_loc(fde->cie, 13, f);
+	dwarfw_cie_write_offset(fde->cie, 15, 3, f);
+	dwarfw_cie_write_offset(fde->cie, 14, 4, f);
+	dwarfw_cie_write_offset(fde->cie, 13, 5, f);
+	dwarfw_cie_write_offset(fde->cie, 12, 6, f);
+	dwarfw_cie_write_offset(fde->cie, 3, 7, f);
+	dwarfw_cie_write_advance_loc(fde->cie, 288, f);
+	dwarfw_cie_write_def_cfa(fde->cie, 7, 8, f);
 
 	fclose(f);
 
@@ -57,12 +57,6 @@ static char *encode_fde_instructions(size_t *len) {
 
 static size_t write_eh_frame(long unsigned int text_offset, FILE *f) {
 	size_t n, written = 0;
-
-	size_t instr_len;
-	char *instr = encode_cie_instructions(&instr_len);
-	if (instr == NULL) {
-		return 0;
-	}
 
 	struct dwarfw_cie cie = {
 		.version = 1,
@@ -73,28 +67,36 @@ static size_t write_eh_frame(long unsigned int text_offset, FILE *f) {
 		.augmentation_data = {
 			.pointer_encoding = DW_EH_PE_sdata4 | DW_EH_PE_pcrel,
 		},
-		.instructions_length = instr_len,
-		.instructions = instr,
 	};
+
+	size_t instr_len;
+	char *instr = encode_cie_instructions(&cie, &instr_len);
+	if (instr == NULL) {
+		return 0;
+	}
+	cie.instructions_length = instr_len;
+	cie.instructions = instr;
+
 	if (!(n = dwarfw_cie_write(&cie, f))) {
 		return 0;
 	}
 	written += n;
 	free(instr);
 
-	instr = encode_fde_instructions(&instr_len);
-	if (instr == NULL) {
-		return 0;
-	}
-
 	struct dwarfw_fde fde = {
 		.cie = &cie,
 		.cie_pointer = written,
 		.initial_location = text_offset - written,
 		.address_range = 0x132,
-		.instructions_length = instr_len,
-		.instructions = instr,
 	};
+
+	instr = encode_fde_instructions(&fde, &instr_len);
+	if (instr == NULL) {
+		return 0;
+	}
+	fde.instructions_length = instr_len;
+	fde.instructions = instr;
+
 	if (!(n = dwarfw_fde_write(&fde, NULL, f))) {
 		return 0;
 	}

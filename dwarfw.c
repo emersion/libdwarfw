@@ -144,7 +144,7 @@ size_t dwarfw_cie_write(struct dwarfw_cie *cie, FILE *f) {
 		written += n;
 	}
 
-	if (!(n = dwarfw_cfa_pad(padding_length, f))) {
+	if (!(n = dwarfw_cie_pad(cie, padding_length, f))) {
 		return 0;
 	}
 	written += n;
@@ -234,7 +234,7 @@ size_t dwarfw_fde_write(struct dwarfw_fde *fde, GElf_Rela *rela, FILE *f) {
 		written += n;
 	}
 
-	if (!(n = dwarfw_cfa_pad(padding_length, f))) {
+	if (!(n = dwarfw_cie_pad(fde->cie, padding_length, f))) {
 		return 0;
 	}
 	written += n;
