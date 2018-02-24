@@ -1,5 +1,7 @@
+#include <assert.h>
 #include <dwarf.h>
 #include <dwarfw.h>
+#include <stdbool.h>
 #include "leb128.h"
 #include "pointer.h"
 
@@ -90,6 +92,11 @@ size_t dwarfw_cfa_write_offset(uint64_t reg, uint64_t offset, FILE *f) {
 	return written;
 }
 
+size_t dwarfw_cfa_write_restore(uint64_t reg, FILE *f) {
+	assert(reg <= OPCODE_LOW_MASK);
+	return write_u8(DW_CFA_restore | reg, f);
+}
+
 size_t dwarfw_cfa_write_nop(FILE *f) {
 	return write_u8(DW_CFA_nop, f);
 }
@@ -125,6 +132,51 @@ size_t dwarfw_cfa_write_undefined(uint64_t reg, FILE *f) {
 	written += n;
 
 	return written;
+}
+
+size_t dwarfw_cfa_write_same_value(uint64_t reg, FILE *f) {
+	size_t n, written = 0;
+
+	if (!(n = write_u8(DW_CFA_same_value, f))) {
+		return 0;
+	}
+	written += n;
+
+	if (!(n = leb128_write_u64(reg, f, 0))) {
+		return 0;
+	}
+	written += n;
+
+	return written;
+}
+
+size_t dwarfw_cfa_write_register(uint64_t reg, uint64_t offset, FILE *f) {
+	size_t n, written = 0;
+
+	if (!(n = write_u8(DW_CFA_register, f))) {
+		return 0;
+	}
+	written += n;
+
+	if (!(n = leb128_write_u64(reg, f, 0))) {
+		return 0;
+	}
+	written += n;
+
+	if (!(n = leb128_write_u64(offset, f, 0))) {
+		return 0;
+	}
+	written += n;
+
+	return written;
+}
+
+size_t dwarfw_cfa_write_remember_state(FILE *f) {
+	return write_u8(DW_CFA_remember_state, f);
+}
+
+size_t dwarfw_cfa_write_restore_state(FILE *f) {
+	return write_u8(DW_CFA_restore_state, f);
 }
 
 size_t dwarfw_cfa_write_def_cfa(uint64_t reg, uint64_t offset, FILE *f) {
@@ -168,6 +220,27 @@ size_t dwarfw_cfa_write_def_cfa_offset(uint64_t offset, FILE *f) {
 	size_t n, written = 0;
 
 	if (!(n = write_u8(DW_CFA_def_cfa_offset, f))) {
+		return 0;
+	}
+	written += n;
+
+	if (!(n = leb128_write_u64(offset, f, 0))) {
+		return 0;
+	}
+	written += n;
+
+	return written;
+}
+
+size_t dwarfw_cfa_write_val_offset(uint64_t reg, uint64_t offset, FILE *f) {
+	size_t n, written = 0;
+
+	if (!(n = write_u8(DW_CFA_val_offset, f))) {
+		return 0;
+	}
+	written += n;
+
+	if (!(n = leb128_write_u64(reg, f, 0))) {
 		return 0;
 	}
 	written += n;
