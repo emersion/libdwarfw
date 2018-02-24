@@ -28,7 +28,7 @@ struct dwarfw_fde {
 	struct dwarfw_cie *cie;
 
 	uint32_t cie_pointer; // relative to the start of the FDE section
-	long long int initial_location; // encoded with pointer_encoding
+	long long int initial_location;
 	uint32_t address_range;
 	// TODO: augmentation data
 
