@@ -23,9 +23,11 @@ lib_dwarfw = library(
 	meson.project_name(),
 	files(
 		'dwarfw.c',
+		'expressions.c',
 		'instructions.c',
 		'leb128.c',
 		'pointer.c',
+		'write.c',
 	),
 	include_directories: dwarfw_inc,
 	dependencies: [elf],

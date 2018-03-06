@@ -4,19 +4,7 @@
 #include <stdbool.h>
 #include "leb128.h"
 #include "pointer.h"
-
-static size_t write_u8(uint8_t b, FILE *f) {
-	return fwrite(&b, 1, sizeof(b), f);
-}
-
-static size_t write_u16(uint16_t b, FILE *f) {
-	return fwrite(&b, 1, sizeof(b), f);
-}
-
-static size_t write_u32(uint32_t b, FILE *f) {
-	return fwrite(&b, 1, sizeof(b), f);
-}
-
+#include "write.h"
 
 #define OPCODE_LOW_MASK 0x3F
 
@@ -297,6 +285,61 @@ size_t dwarfw_cie_write_def_cfa_offset(struct dwarfw_cie *cie,
 		}
 		written += n;
 	}
+
+	return written;
+}
+
+static size_t write_block(const char *buf, size_t buf_len, FILE *f) {
+	size_t n, written = 0;
+
+	if (!(n = leb128_write_u64(buf_len, f, 0))) {
+		return 0;
+	}
+	written += n;
+
+	if (!(n = fwrite(buf, 1, buf_len, f))) {
+		return 0;
+	}
+	written += n;
+
+	return written;
+}
+
+size_t dwarfw_cie_write_def_cfa_expression(struct dwarfw_cie *cie,
+		const char *expr, size_t expr_len, FILE *f) {
+	size_t n, written = 0;
+
+	if (!(n = write_u8(DW_CFA_def_cfa_expression, f))) {
+		return 0;
+	}
+	written += n;
+
+	if (!(n = write_block(expr, expr_len, f))) {
+		return 0;
+	}
+	written += n;
+
+	return written;
+}
+
+size_t dwarfw_cie_write_expression(struct dwarfw_cie *cie,
+		uint64_t reg, const char *expr, size_t expr_len, FILE *f) {
+	size_t n, written = 0;
+
+	if (!(n = write_u8(DW_CFA_expression, f))) {
+		return 0;
+	}
+	written += n;
+
+	if (!(n = leb128_write_u64(reg, f, 0))) {
+		return 0;
+	}
+	written += n;
+
+	if (!(n = write_block(expr, expr_len, f))) {
+		return 0;
+	}
+	written += n;
 
 	return written;
 }

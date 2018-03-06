@@ -61,9 +61,17 @@ size_t dwarfw_cie_write_def_cfa_register(struct dwarfw_cie *cie, uint64_t reg,
 	FILE *f);
 size_t dwarfw_cie_write_def_cfa_offset(struct dwarfw_cie *cie,
 	long long int offset, FILE *f);
+size_t dwarfw_cie_write_def_cfa_expression(struct dwarfw_cie *cie,
+	const char *expr, size_t expr_len, FILE *f);
+size_t dwarfw_cie_write_expression(struct dwarfw_cie *cie,
+	uint64_t reg, const char *expr, size_t expr_len, FILE *f);
 size_t dwarfw_cie_write_val_offset(struct dwarfw_cie *cie, uint64_t reg,
 	long long int offset, FILE *f);
 
 size_t dwarfw_cie_pad(struct dwarfw_cie *cie, size_t length, FILE *f);
+
+// Call Frame Expressions
+size_t dwarfw_op_write_deref(FILE *f);
+size_t dwarfw_op_write_bregx(uint64_t reg, long long int offset, FILE *f);
 
 #endif
